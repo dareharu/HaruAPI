@@ -6,7 +6,7 @@ plugins {
   `java-library`
   `maven-publish`
   id("net.kyori.blossom")
-  id("net.kyori.indra.publishing")
+  id("net.kyori.indra.git")
   id("com.github.johnrengelman.shadow")
   id("org.checkerframework")
   id("org.cadixdev.licenser")
@@ -156,15 +156,17 @@ tasks {
     }
 
     manifest {
-      attributes(mapOf(
-        "Specification-Title" to project.name,
-        "Specification-Vendor" to organization,
-        "Specification-Version" to project.version,
-        "Implementation-Title" to project.name,
-        "Implementation-Vendor" to organization,
-        "Implementation-Version" to project.version,
-        "Implementation-Timestamp" to SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(Date())
-      ))
+      attributes(
+        mapOf(
+          "Specification-Title" to project.name,
+          "Specification-Vendor" to organization,
+          "Specification-Version" to project.version,
+          "Implementation-Title" to project.name,
+          "Implementation-Vendor" to organization,
+          "Implementation-Version" to project.version,
+          "Implementation-Timestamp" to SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(Date())
+        )
+      )
 
       if (indraGit.isPresent) {
         indraGit.applyVcsInformationToManifest(this)
@@ -208,16 +210,41 @@ license {
   newLine(false)
 }
 
-indra {
-  javaVersions {
-    testWith(8, 11)
+publishing {
+  repositories {
+    maven {
+      name = "GitHubPackages"
+      url = uri("https://maven.pkg.github.com/dareharu/haruapi")
+      credentials {
+        username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
+        password = project.findProperty("gpr.password") as String? ?: System.getenv("TOKEN")
+      }
+    }
   }
 
-  configurePublications {
-    artifactId = project.name.toLowerCase(Locale.ROOT)
-    pom {
-      this.url.set(projectUrl)
-      this.description.set(projectDescription)
+  publications {
+    register<MavenPublication>("gpr") {
+      from(components["java"])
+
+      pom {
+        artifactId = project.name.toLowerCase()
+        this.name.set(project.name)
+        this.description.set(projectDescription)
+        this.url.set(projectUrl)
+
+        licenses {
+          license {
+            this.name.set("MIT")
+            this.url.set("https://opensource.org/licenses/MIT")
+          }
+        }
+
+        scm {
+          connection.set("scm:git:git://github.com/Dareharu/HaruAPI.git")
+          developerConnection.set("scm:git:git://github.com/Dareharu/HaruAPI.git")
+          this.url.set(projectUrl)
+        }
+      }
     }
   }
 }
