@@ -115,6 +115,10 @@ java {
 
 tasks {
   jar {
+    enabled = false
+  }
+
+  build {
     dependsOn(shadowJar)
   }
 
@@ -142,7 +146,7 @@ tasks {
   shadowJar {
     archiveBaseName.set("HaruAPI")
     archiveVersion.set(version)
-    archiveClassifier.set("universal")
+    archiveClassifier.set("")
 
     minimize {
       dependencies {
@@ -225,6 +229,8 @@ publishing {
   publications {
     register<MavenPublication>("gpr") {
       from(components["java"])
+
+      artifact(tasks.shadowJar)
 
       pom {
         artifactId = project.name.toLowerCase()
