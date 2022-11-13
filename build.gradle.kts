@@ -1,5 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.ShadowExtension
 import java.util.Date
-import java.util.Locale
 import java.text.SimpleDateFormat
 
 plugins {
@@ -114,10 +114,6 @@ java {
 }
 
 tasks {
-  jar {
-    enabled = false
-  }
-
   build {
     dependsOn(shadowJar)
   }
@@ -156,7 +152,7 @@ tasks {
 
       // Nah, we hate those.
       exclude("META-INF/**")
-      exclude("**/package-info.java")
+      exclude("**/package-info.class")
     }
 
     manifest {
@@ -227,13 +223,19 @@ publishing {
   }
 
   publications {
+    create<MavenPublication>("shadow") {
+      project.extensions.configure<ShadowExtension> {
+        component(this@create)
+      }
+    }
+
     register<MavenPublication>("gpr") {
       from(components["java"])
 
-      artifact(tasks.shadowJar)
-
       pom {
+        groupId = project.group as String
         artifactId = project.name.toLowerCase()
+        version = project.version as String
         this.name.set(project.name)
         this.description.set(projectDescription)
         this.url.set(projectUrl)
